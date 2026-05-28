@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KWS Contacts">
+  <meta name="theme-color" content="#0c2155">
+  <title>KWS Contact Capture</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+  <style>
+    /* Fallback: if icon font fails, show text symbols */
+    .ti::before { font-family: 'tabler-icons', sans-serif; }
+  </style>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    :root{
+      --navy:#123174;
+      --navy-dark:#0c2155;
+      --navy-mid:#1a3d8f;
+      --pink:#F26C9E;
+      --pink-light:#fde8f3;
+      --pink-mid:#F2B2CA;
+      --orange:#F27506;
+      --gold:#F2B704;
+      --periwinkle:#7B7BD6;
+      --blue:#094BCC;
+      --off-white:#F7F5F7;
+      --card:#FFFFFF;
+      --text:#123174;
+      --muted:#5a6a9a;
+      --border:rgba(18,49,116,0.12);
+      --radius:14px;
+      --radius-sm:9px;
+      --safe-top:env(safe-area-inset-top, 0px);
+      --safe-bottom:env(safe-area-inset-bottom, 0px);
+    }
+    html,body{height:100%;overflow:hidden;background:var(--navy-dark);font-family:'Poppins',sans-serif;color:var(--text);}
+    #app{height:100%;display:flex;flex-direction:column;background:var(--off-white);max-width:480px;margin:0 auto;position:relative;overflow:hidden;}
+
+    /* HEADER */
+    .app-header{background:var(--navy-dark);padding:calc(var(--safe-top) + 10px) 18px 16px;position:relative;overflow:hidden;flex-shrink:0;}
+    .header-bg{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;}
+    .header-bg circle{opacity:0.15;}
+    .logo-row{display:flex;align-items:center;gap:10px;position:relative;z-index:2;}
+    .logo-box{width:42px;height:42px;background:var(--pink);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo-box svg{width:30px;height:30px;}
+    .header-text .brand{font-family:'Montserrat',sans-serif;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase;}
+    .header-text h1{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;line-height:1.2;}
+    .header-text .sub{font-size:11px;color:rgba(255,255,255,0.45);}
+    .header-add-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--pink);border:none;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:auto;flex-shrink:0;position:relative;z-index:2;}
+
+    /* SCREENS */
+    .screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px;padding-bottom:calc(14px + var(--safe-bottom));}
+    .screen.active{display:block;}
+
+    /* NAV */
+    .nav-bar{display:flex;background:white;border-top:0.5px solid var(--border);padding:6px 0 calc(6px + var(--safe-bottom));flex-shrink:0;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:3px 0;color:var(--muted);font-size:10px;font-weight:500;font-family:'Poppins',sans-serif;border:none;background:none;}
+    .nav-item.active{color:var(--navy);}
+    .nav-item i{font-size:20px;}
+
+    /* CARDS */
+    .card{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);padding:14px;margin-bottom:11px;}
+    .section-label{font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:600;}
+
+    /* SCAN ZONE */
+    .scan-zone{border-radius:var(--radius);height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;position:relative;overflow:hidden;margin-bottom:11px;background:var(--navy-dark);}
+    .scan-zone .wc-bg{position:absolute;top:0;left:0;right:0;bottom:0;}
+    .corner{position:absolute;width:18px;height:18px;border-color:var(--gold);border-style:solid;border-width:0;}
+    .corner.tl{top:10px;left:10px;border-top-width:2px;border-left-width:2px;border-radius:3px 0 0 0;}
+    .corner.tr{top:10px;right:10px;border-top-width:2px;border-right-width:2px;border-radius:0 3px 0 0;}
+    .corner.bl{bottom:10px;left:10px;border-bottom-width:2px;border-left-width:2px;border-radius:0 0 0 3px;}
+    .corner.br{bottom:10px;right:10px;border-bottom-width:2px;border-right-width:2px;border-radius:0 0 3px 0;}
+    .scan-inner{display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;z-index:1;}
+    .scan-icon-wrap{width:38px;height:38px;border:1.5px solid rgba(255,255,255,0.25);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+    .scan-zone p{color:rgba(255,255,255,0.9);font-size:13px;font-weight:500;position:relative;z-index:1;}
+    .scan-zone small{color:rgba(255,255,255,0.4);font-size:11px;position:relative;z-index:1;}
+    #camera-input{display:none;}
+
+    /* FIELDS */
+    .field-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);}
+    .field-row:last-child{border-bottom:none;}
+    .field-icon{width:28px;height:28px;border-radius:7px;background:var(--pink-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--pink);font-size:13px;}
+    .field-content{flex:1;min-width:0;}
+    .field-content label{display:block;font-size:10px;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1px;font-weight:500;}
+    .field-content input,.field-content textarea{width:100%;border:none;outline:none;font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:transparent;padding:0;resize:none;}
+    .field-content input::placeholder,.field-content textarea::placeholder{color:#c0c8e0;}
+
+    /* CHIPS */
+    .chips{display:flex;flex-wrap:wrap;gap:5px;}
+    .chip{padding:5px 10px;border-radius:20px;font-size:11px;border:0.5px solid var(--border);background:white;cursor:pointer;color:var(--muted);font-family:'Poppins',sans-serif;transition:all 0.15s;-webkit-appearance:none;}
+    .chip.selected{background:var(--pink-light);border-color:var(--pink);color:#a0245e;font-weight:500;}
+
+    /* VOICE */
+    .voice-zone{background:var(--off-white);border-radius:var(--radius-sm);padding:12px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:1.5px solid transparent;transition:border-color 0.2s;}
+    .voice-zone.recording{border-color:var(--pink);background:var(--pink-light);}
+    .mic-btn{width:38px;height:38px;border-radius:50%;background:var(--navy);border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;color:white;font-size:15px;}
+    .mic-btn.recording{background:var(--pink);}
+    .voice-text{flex:1;font-size:12px;color:var(--muted);line-height:1.5;min-height:38px;font-family:'Poppins',sans-serif;}
+    .voice-text.has-content{color:var(--text);}
+    .wave-bars{display:flex;gap:3px;align-items:center;height:18px;justify-content:center;margin-top:8px;}
+    .wave-bar{width:3px;background:var(--pink);border-radius:2px;animation:wave 0.8s ease-in-out infinite;}
+    .wave-bar:nth-child(2){animation-delay:0.15s;}
+    .wave-bar:nth-child(3){animation-delay:0.3s;}
+    .wave-bar:nth-child(4){animation-delay:0.15s;}
+    @keyframes wave{0%,100%{height:5px;}50%{height:16px;}}
+
+    /* DAYS PICKER */
+    .days-picker{display:flex;gap:5px;margin-top:9px;}
+    .day-btn{flex:1;padding:7px 3px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:white;font-size:11px;font-family:'Poppins',sans-serif;color:var(--muted);cursor:pointer;text-align:center;-webkit-appearance:none;}
+    .day-btn.selected{background:var(--navy);border-color:var(--navy);color:white;font-weight:500;}
+
+    /* SAVE BTN */
+    .save-btn{width:100%;padding:14px;background:var(--navy);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;letter-spacing:0.02em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-appearance:none;}
+    .save-btn:active{opacity:0.85;}
+    .save-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+    /* CONTACT LIST */
+    .contact-card{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+    .avatar{width:40px;height:40px;border-radius:50%;background:var(--pink-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--pink);flex-shrink:0;font-family:'Montserrat',sans-serif;}
+    .contact-info{flex:1;min-width:0;}
+    .contact-name{font-size:13px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--navy);}
+    .contact-co{font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .event-tag{font-size:10px;color:var(--muted);background:var(--off-white);padding:2px 7px;border-radius:20px;margin-top:4px;display:inline-block;}
+    .badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;white-space:nowrap;font-family:'Poppins',sans-serif;}
+    .badge.soon{background:#fff3cd;color:#7a4800;}
+    .badge.done{background:var(--pink-light);color:#a0245e;}
+    .badge.overdue{background:#fde8e8;color:#9b2020;}
+    .badge.pending{background:#e8eeff;color:var(--navy);}
+
+    /* SEARCH */
+    .search-row{display:flex;gap:9px;margin-bottom:13px;align-items:center;}
+    .search-box{flex:1;background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);display:flex;align-items:center;gap:7px;padding:9px 11px;}
+    .search-box input{border:none;outline:none;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text);background:transparent;flex:1;width:100%;}
+    .search-box input::placeholder{color:#c0c8e0;}
+
+    /* SUCCESS */
+    .success-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;gap:10px;min-height:400px;}
+    .success-icon{width:60px;height:60px;border-radius:50%;background:var(--pink-light);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--pink);animation:pulse 1.5s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+
+    /* PROCESSING */
+    .processing-overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(12,33,85,0.85);z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+    .processing-overlay.active{display:flex;}
+    .processing-dots span{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin:0 3px;animation:dot 1.2s ease-in-out infinite;}
+    .processing-dots span:nth-child(2){animation-delay:0.2s;}
+    .processing-dots span:nth-child(3){animation-delay:0.4s;}
+    @keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
+
+    /* TOAST */
+    .toast{position:absolute;bottom:calc(70px + var(--safe-bottom));left:16px;right:16px;padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;text-align:center;z-index:200;transform:translateY(20px);opacity:0;transition:all 0.3s;pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.success{background:var(--navy);color:white;}
+    .toast.error{background:#9b2020;color:white;}
+
+    /* EMPTY STATE */
+    .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+    .empty-state i{font-size:48px;opacity:0.3;display:block;margin-bottom:12px;}
+    .empty-state p{font-size:13px;line-height:1.6;}
+
+    /* DETAIL */
+    .detail-notes{font-size:13px;line-height:1.7;color:var(--text);font-style:italic;}
+    .back-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;padding:0;display:flex;align-items:center;}
+    .screen-title{font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--navy);}
+
+    /* CONFIG */
+    .config-section{margin-bottom:20px;}
+    .config-input{width:100%;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:white;outline:none;}
+    .config-input:focus{border-color:var(--pink);}
+    .config-label{font-size:11px;color:var(--muted);margin-bottom:5px;display:block;font-weight:500;}
+    .config-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;}
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <svg class="header-bg" viewBox="0 0 400 80" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;">
+      <circle cx="320" cy="10" r="70" fill="#F27506" opacity="0.15"/>
+      <circle cx="50" cy="70" r="50" fill="#094BCC" opacity="0.15"/>
+      <circle cx="360" cy="75" r="40" fill="#F26C9E" opacity="0.15"/>
+    </svg>
+    <div class="logo-row">
+      <div class="logo-box">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(40,35)">
+            <ellipse cx="-8" cy="-16" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(-30)"/>
+            <ellipse cx="8" cy="-16" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(30)"/>
+            <ellipse cx="17" cy="-4" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(80)"/>
+            <ellipse cx="17" cy="10" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(130)"/>
+            <ellipse cx="0" cy="18" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(180)"/>
+            <ellipse cx="-17" cy="10" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(230)"/>
+            <ellipse cx="-17" cy="-4" rx="6" ry="11" fill="white" stroke="#123174" stroke-width="2.2" transform="rotate(280)"/>
+          </g>
+          <circle cx="40" cy="35" r="9" fill="#F2B704" stroke="#123174" stroke-width="2"/>
+          <path d="M40 44 Q38 58 36 72" stroke="#123174" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <div class="brand">Kingstown Web Studio</div>
+        <h1>Contact Capture</h1>
+        <div class="sub" id="header-sub">Your networking sidekick</div>
+      </div>
+      <button class="header-add-btn" onclick="showScreen('capture')" aria-label="Add new contact">
+        <span style="font-size:22px;line-height:1;font-weight:300;">+</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PROCESSING OVERLAY -->
+  <div class="processing-overlay" id="processing-overlay">
+    <div class="processing-dots"><span></span><span></span><span></span></div>
+    <p style="color:white;font-size:13px;font-weight:500;" id="processing-msg">Reading card...</p>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCREEN: CONTACTS LIST -->
+  <div class="screen active" id="screen-list">
+    <div class="search-row">
+      <div class="search-box">
+        <span style="font-size:15px;flex-shrink:0;">🔍</span>
+        <input type="search" placeholder="Search contacts..." id="search-input" oninput="filterContacts()">
+      </div>
+    </div>
+    <div id="contacts-container">
+      <div class="empty-state">
+        <span style="font-size:48px;opacity:0.3;display:block;margin-bottom:12px;">📇</span>
+        <p>No contacts yet.<br>Tap + to capture your first card.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: CAPTURE -->
+  <div class="screen" id="screen-capture">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:13px;">
+      <button class="back-btn" onclick="showScreen('list')"><i class="ti ti-arrow-left"></i></button>
+      <span class="screen-title">New Contact</span>
+    </div>
+
+    <!-- Mode toggle: Scan card vs Manual -->
+    <div style="display:flex;gap:6px;margin-bottom:12px;background:white;border-radius:var(--radius-sm);padding:4px;border:0.5px solid var(--border);">
+      <button id="mode-scan-btn" onclick="setMode('scan')" style="flex:1;padding:8px;border-radius:7px;border:none;background:var(--navy);color:white;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+        <i class="ti ti-id"></i> Scan Card
+      </button>
+      <button id="mode-manual-btn" onclick="setMode('manual')" style="flex:1;padding:8px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+        <i class="ti ti-pencil"></i> Manual Entry
+      </button>
+    </div>
+
+    <!-- Camera scan zone (shown in scan mode) -->
+    <div id="scan-mode-zone">
+      <div class="scan-zone" id="scan-zone" onclick="triggerCamera()">
+        <svg class="wc-bg" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;">
+          <circle cx="340" cy="20" r="80" fill="#F27506" opacity="0.2"/>
+          <circle cx="40" cy="130" r="60" fill="#094BCC" opacity="0.2"/>
+          <circle cx="220" cy="160" r="50" fill="#F26C9E" opacity="0.2"/>
+        </svg>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="scan-inner" id="scan-inner">
+          <div class="scan-icon-wrap"><span style="font-size:20px;">🪪</span></div>
+          <p>Tap to photograph card</p>
+          <small>Auto-fills name, company & details</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual mode hint (shown in manual mode) -->
+    <div id="manual-mode-hint" style="display:none;background:var(--pink-light);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:11px;border:0.5px solid var(--pink-mid);">
+      <p style="font-size:12px;color:#a0245e;font-weight:500;"><i class="ti ti-pencil" style="margin-right:5px;"></i>Fill in what you know - nothing is required except a name.</p>
+    </div>
+
+    <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleCardPhoto(event)">
+
+    <!-- Contact fields -->
+    <div class="card">
+      <div class="section-label">Contact details</div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-user"></i></div>
+        <div class="field-content"><label>Name</label><input type="text" id="f-name" placeholder="Full name" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-building"></i></div>
+        <div class="field-content"><label>Company</label><input type="text" id="f-company" placeholder="Company name" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-briefcase"></i></div>
+        <div class="field-content"><label>Role</label><input type="text" id="f-role" placeholder="Job title" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-mail"></i></div>
+        <div class="field-content"><label>Email</label><input type="email" id="f-email" placeholder="email@company.com" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-phone"></i></div>
+        <div class="field-content"><label>Phone</label><input type="tel" id="f-phone" placeholder="07..." autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-icon"><i class="ti ti-world"></i></div>
+        <div class="field-content"><label>Website</label><input type="url" id="f-website" placeholder="www..." autocomplete="off"></div>
+      </div>
+    </div>
+
+    <!-- Optional photo -->
+    <div class="card">
+      <div class="section-label">Optional photo</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div id="photo-preview" style="width:56px;height:56px;border-radius:50%;background:var(--off-white);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;cursor:pointer;" onclick="triggerPhotoInput()">
+          <i class="ti ti-user" style="font-size:22px;color:var(--muted);" id="photo-icon"></i>
+          <img id="photo-img" style="display:none;width:100%;height:100%;object-fit:cover;" alt="Contact photo">
+        </div>
+        <div style="flex:1;">
+          <button onclick="triggerPhotoInput()" style="width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:white;font-size:12px;font-family:'Poppins',sans-serif;color:var(--muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:7px;">
+            <i class="ti ti-camera" style="color:var(--pink);font-size:15px;"></i>
+            <span id="photo-btn-text">Add a photo (headshot, selfie together...)</span>
+          </button>
+          <div id="photo-remove-row" style="display:none;margin-top:6px;">
+            <button onclick="removePhoto()" style="font-size:11px;color:#9b2020;background:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif;">
+              <i class="ti ti-trash" style="font-size:12px;"></i> Remove photo
+            </button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handleContactPhoto(event)">
+    </div>
+
+    <!-- Where met -->
+    <div class="card">
+      <div class="section-label">Where you met</div>
+      <div class="chips" id="event-chips">
+        <button class="chip" onclick="toggleChip(this)">FSB Hull</button>
+        <button class="chip" onclick="toggleChip(this)">Hull Chamber</button>
+        <button class="chip" onclick="toggleChip(this)">Enterprise4All</button>
+        <button class="chip" onclick="toggleChip(this)">HBTC</button>
+        <button class="chip" onclick="toggleChip(this)">LinkedIn IRL</button>
+        <button class="chip" onclick="toggleChip(this)">Conference</button>
+        <button class="chip" onclick="toggleChip(this)">Workshop</button>
+        <button class="chip" onclick="toggleChip(this)">Other</button>
+      </div>
+    </div>
+
+    <!-- Voice notes -->
+    <div class="card">
+      <div class="section-label">Your notes</div>
+      <div id="voice-zone" class="voice-zone" onclick="toggleVoice()">
+        <button id="mic-btn" class="mic-btn" aria-label="Record voice note">
+          <span style="font-size:16px;">🎤</span>
+        </button>
+        <div id="voice-text" class="voice-text">Tap to speak your notes about this person...</div>
+      </div>
+      <div id="wave-container" style="display:none;">
+        <div class="wave-bars">
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="field-content">
+          <label>Or type notes</label>
+          <textarea id="f-notes" placeholder="Any extra notes..." rows="2" style="margin-top:4px;padding:4px 0;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Follow-up -->
+    <div class="card">
+      <div class="section-label">Follow-up reminder</div>
+      <div class="days-picker">
+        <button class="day-btn" onclick="selectDays(this,2)">2 days</button>
+        <button class="day-btn selected" onclick="selectDays(this,7)">1 week</button>
+        <button class="day-btn" onclick="selectDays(this,14)">2 weeks</button>
+        <button class="day-btn" onclick="selectDays(this,30)">1 month</button>
+      </div>
+      <div style="margin-top:9px;padding-top:9px;border-top:0.5px solid var(--border);font-size:11px;color:var(--muted);">
+        Reminder email to <span id="reminder-email-display" style="color:var(--navy);font-weight:500;">your email</span>
+      </div>
+    </div>
+
+    <button class="save-btn" id="save-btn" onclick="saveContact()">
+      💾 Save Contact
+    </button>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- SCREEN: SUCCESS -->
+  <div class="screen" id="screen-success">
+    <div class="success-screen">
+      <div class="success-icon"><i class="ti ti-check"></i></div>
+      <h2 style="font-family:'Montserrat',sans-serif;font-size:19px;font-weight:700;color:var(--navy);">Contact saved!</h2>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px;">Added to your Google Sheet and follow-up reminder set.</p>
+      <div style="background:var(--pink-light);border-radius:var(--radius);padding:12px 15px;width:100%;margin-top:6px;border:0.5px solid var(--pink-mid);">
+        <div style="font-size:10px;color:#a0245e;font-weight:600;margin-bottom:4px;font-family:'Montserrat',sans-serif;letter-spacing:0.08em;text-transform:uppercase;">Saved</div>
+        <div style="font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--navy);" id="success-name"></div>
+        <div style="font-size:12px;color:var(--muted);" id="success-co"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="success-followup"></div>
+      </div>
+      <button onclick="resetAndCapture()" style="width:100%;padding:13px;background:var(--navy);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;margin-top:6px;">
+        + Capture Another Card
+      </button>
+      <button onclick="showScreen('list')" style="width:100%;padding:10px;background:none;color:var(--muted);border:none;font-size:12px;font-family:'Poppins',sans-serif;cursor:pointer;">
+        Back to contacts
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: CONTACT DETAIL -->
+  <div class="screen" id="screen-detail">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px;">
+      <button class="back-btn" onclick="showScreen('list')"><i class="ti ti-arrow-left"></i></button>
+      <span class="screen-title">Contact</span>
+      <button onclick="deleteCurrentContact()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#9b2020;font-size:18px;padding:4px;">
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- SCREEN: SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div style="margin-bottom:16px;">
+      <span class="screen-title">Settings</span>
+    </div>
+
+    <div class="config-section">
+      <div class="card">
+        <div class="section-label">Google Sheets connection</div>
+        <div style="margin-bottom:12px;">
+          <label class="config-label">Apps Script Web App URL</label>
+          <input type="url" class="config-input" id="cfg-sheet-url" placeholder="https://script.google.com/macros/s/..." oninput="saveConfig()">
+          <div class="config-note">Paste your Google Apps Script deployment URL here. <a href="#" onclick="showSheetInstructions()" style="color:var(--blue);">How to set this up →</a></div>
+        </div>
+        <div>
+          <label class="config-label">Your email (for reminders)</label>
+          <input type="email" class="config-input" id="cfg-email" placeholder="susi@kingstownwebstudio.co.uk" oninput="saveConfig()">
+          <div class="config-note">Follow-up reminder emails will be sent here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="card">
+        <div class="section-label">Event locations</div>
+        <div class="config-note" style="margin-bottom:8px;">Customise your quick-select event chips (one per line):</div>
+        <textarea class="config-input" id="cfg-events" rows="6" placeholder="FSB Hull&#10;Hull Chamber&#10;Enterprise4All&#10;HBTC&#10;LinkedIn IRL&#10;Conference" oninput="saveConfig()" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="card">
+        <div class="section-label">Vision API key</div>
+        <input type="password" class="config-input" id="cfg-api-key" placeholder="AIza..." oninput="saveConfig()">
+        <div class="config-note">Your Google Cloud Vision API key for business card OCR.</div>
+      </div>
+    </div>
+
+    <button onclick="testConnection()" style="width:100%;padding:12px;background:var(--navy);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;margin-bottom:10px;">
+      Test Sheet Connection
+    </button>
+
+    <div id="sheet-instructions" style="display:none;">
+      <div class="card" style="background:var(--navy-dark);">
+        <div class="section-label" style="color:rgba(255,255,255,0.5);">How to set up your Google Sheet</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.8);line-height:1.8;">
+          1. Open <strong style="color:white;">script.google.com</strong><br>
+          2. Click <strong style="color:white;">New project</strong><br>
+          3. Paste the Apps Script code (see README)<br>
+          4. Click <strong style="color:white;">Deploy → New deployment</strong><br>
+          5. Type: <strong style="color:white;">Web app</strong><br>
+          6. Execute as: <strong style="color:white;">Me</strong><br>
+          7. Who has access: <strong style="color:white;">Anyone</strong><br>
+          8. Copy the URL and paste it above
+        </div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- NAV BAR -->
+  <nav class="nav-bar">
+    <button class="nav-item active" id="nav-list" onclick="showScreen('list')">
+      <span style="font-size:20px;">👥</span><span>Contacts</span>
+    </button>
+    <button class="nav-item" id="nav-capture" onclick="showScreen('capture')">
+      <span style="font-size:20px;">📷</span><span>Capture</span>
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="showScreen('settings')">
+      <span style="font-size:20px;">⚙️</span><span>Settings</span>
+    </button>
+  </nav>
+
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const VISION_API_KEY = 'AIzaSyCcPNXbdA5EY9Ri7yml3bKVwoWODqk9eMo';
+let config = {
+  sheetUrl: '',
+  email: '',
+  apiKey: VISION_API_KEY,
+  events: 'FSB Hull\nHull Chamber\nEnterprise4All\nHBTC\nLinkedIn IRL\nConference\nWorkshop\nOther'
+};
+let contacts = [];
+let currentContact = null;
+let followupDays = 7;
+let voiceNote = '';
+let recognition = null;
+let isRecording = false;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  loadContacts();
+  renderContacts();
+  updateEventChips();
+  updateReminderEmailDisplay();
+  initSpeechRecognition();
+});
+
+// ─── CONFIG PERSISTENCE ───────────────────────────────────────────────────────
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem('kws_config');
+    if (saved) config = { ...config, ...JSON.parse(saved) };
+    document.getElementById('cfg-sheet-url').value = config.sheetUrl || '';
+    document.getElementById('cfg-email').value = config.email || '';
+    document.getElementById('cfg-api-key').value = config.apiKey || VISION_API_KEY;
+    document.getElementById('cfg-events').value = config.events || '';
+  } catch(e) {}
+}
+
+function saveConfig() {
+  config.sheetUrl = document.getElementById('cfg-sheet-url').value;
+  config.email = document.getElementById('cfg-email').value;
+  config.apiKey = document.getElementById('cfg-api-key').value || VISION_API_KEY;
+  config.events = document.getElementById('cfg-events').value;
+  try { localStorage.setItem('kws_config', JSON.stringify(config)); } catch(e) {}
+  updateReminderEmailDisplay();
+  updateEventChips();
+}
+
+function updateReminderEmailDisplay() {
+  const el = document.getElementById('reminder-email-display');
+  if (el) el.textContent = config.email || 'configure in Settings';
+}
+
+// ─── CONTACTS PERSISTENCE ─────────────────────────────────────────────────────
+function loadContacts() {
+  try {
+    const saved = localStorage.getItem('kws_contacts');
+    if (saved) contacts = JSON.parse(saved);
+  } catch(e) { contacts = []; }
+}
+
+function saveContacts() {
+  try { localStorage.setItem('kws_contacts', JSON.stringify(contacts)); } catch(e) {}
+}
+
+// ─── SCREENS ──────────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const navMap = { list:'nav-list', capture:'nav-capture', settings:'nav-settings' };
+  if (navMap[name]) document.getElementById(navMap[name]).classList.add('active');
+  const subMap = {
+    list: 'Your networking sidekick',
+    capture: 'New contact',
+    settings: 'Configuration',
+    success: '',
+    detail: ''
+  };
+  document.getElementById('header-sub').textContent = subMap[name] || '';
+}
+
+// ─── MODE TOGGLE (scan vs manual) ────────────────────────────────────────────
+let captureMode = 'scan';
+
+function setMode(mode) {
+  captureMode = mode;
+  const scanZone = document.getElementById('scan-mode-zone');
+  const manualHint = document.getElementById('manual-mode-hint');
+  const scanBtn = document.getElementById('mode-scan-btn');
+  const manualBtn = document.getElementById('mode-manual-btn');
+
+  if (mode === 'scan') {
+    scanZone.style.display = 'block';
+    manualHint.style.display = 'none';
+    scanBtn.style.background = 'var(--navy)';
+    scanBtn.style.color = 'white';
+    manualBtn.style.background = 'transparent';
+    manualBtn.style.color = 'var(--muted)';
+  } else {
+    scanZone.style.display = 'none';
+    manualHint.style.display = 'block';
+    manualBtn.style.background = 'var(--navy)';
+    manualBtn.style.color = 'white';
+    scanBtn.style.background = 'transparent';
+    scanBtn.style.color = 'var(--muted)';
+    // Focus name field
+    setTimeout(() => document.getElementById('f-name').focus(), 100);
+  }
+}
+
+// ─── CONTACT PHOTO ────────────────────────────────────────────────────────────
+let contactPhotoBase64 = null;
+
+function triggerPhotoInput() {
+  document.getElementById('photo-input').click();
+}
+
+function handleContactPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    contactPhotoBase64 = e.target.result;
+    const img = document.getElementById('photo-img');
+    const icon = document.getElementById('photo-icon');
+    const btnText = document.getElementById('photo-btn-text');
+    const removeRow = document.getElementById('photo-remove-row');
+    img.src = contactPhotoBase64;
+    img.style.display = 'block';
+    icon.style.display = 'none';
+    btnText.textContent = 'Change photo';
+    removeRow.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function removePhoto() {
+  contactPhotoBase64 = null;
+  document.getElementById('photo-img').style.display = 'none';
+  document.getElementById('photo-img').src = '';
+  document.getElementById('photo-icon').style.display = 'block';
+  document.getElementById('photo-btn-text').textContent = 'Add a photo (headshot, selfie together...)';
+  document.getElementById('photo-remove-row').style.display = 'none';
+}
+
+// ─── CAMERA / OCR ─────────────────────────────────────────────────────────────
+function triggerCamera() {
+  document.getElementById('camera-input').click();
+}
+
+async function handleCardPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const inner = document.getElementById('scan-inner');
+  inner.innerHTML = `<div class="processing-dots"><span></span><span></span><span></span></div><p style="color:rgba(255,255,255,0.8);font-size:12px;">Reading card...</p>`;
+
+  showProcessing('Reading business card...');
+
+  try {
+    const base64 = await fileToBase64(file);
+    const apiKey = config.apiKey || VISION_API_KEY;
+    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          image: { content: base64 },
+          features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    hideProcessing();
+
+    if (data.responses && data.responses[0].fullTextAnnotation) {
+      const text = data.responses[0].fullTextAnnotation.text;
+      parseCardText(text);
+      inner.innerHTML = `
+        <i class="ti ti-check" style="font-size:28px;color:var(--gold);position:relative;z-index:1;"></i>
+        <p style="color:rgba(255,255,255,0.9);font-size:12px;font-weight:600;position:relative;z-index:1;">Card read successfully</p>
+        <small style="color:rgba(255,255,255,0.4);position:relative;z-index:1;">Tap to re-scan</small>`;
+      showToast('Card scanned - please check and edit the fields', 'success');
+    } else {
+      throw new Error('No text found');
+    }
+  } catch(err) {
+    hideProcessing();
+    inner.innerHTML = `
+      <div class="scan-icon-wrap"><i class="ti ti-id" style="color:white;font-size:18px;"></i></div>
+      <p>Tap to photograph card</p>
+      <small>Auto-fills name, company & details</small>`;
+    showToast('Could not read card - please fill in manually', 'error');
+  }
+
+  event.target.value = '';
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function parseCardText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  // Email
+  const emailMatch = text.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) document.getElementById('f-email').value = emailMatch[0];
+
+  // Phone - UK patterns
+  const phoneMatch = text.match(/(\+44|0)[\d\s]{9,13}/);
+  if (phoneMatch) document.getElementById('f-phone').value = phoneMatch[0].trim();
+
+  // Website
+  const webMatch = text.match(/(www\.|https?:\/\/)[^\s\n,]+/i);
+  if (webMatch) document.getElementById('f-website').value = webMatch[0];
+
+  // Name - usually first line, skip if it's a company-like word
+  const skipWords = ['ltd','limited','co','plc','group','studio','agency','solutions','services','consulting','design','digital'];
+  let nameSet = false;
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    const isEmail = line.includes('@');
+    const isPhone = /[\d\s+]{8,}/.test(line);
+    const isWeb = /www\.|http/i.test(line);
+    const hasSkipWord = skipWords.some(w => lower.includes(w));
+    const looksLikeName = /^[A-Z][a-z]+ [A-Z][a-z]+/.test(line);
+    if (!isEmail && !isPhone && !isWeb && looksLikeName && !nameSet) {
+      document.getElementById('f-name').value = line;
+      nameSet = true;
+    }
+  }
+
+  // Company - look for Ltd, Limited, Studio etc
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    if (['ltd','limited','plc','group','studio','agency','solutions','services','consulting'].some(w => lower.includes(w))) {
+      document.getElementById('f-company').value = line;
+      break;
+    }
+  }
+
+  // Role - look for common job title words
+  const roleTriggers = ['director','manager','founder','owner','ceo','cto','head','consultant','designer','developer','officer','partner','principal','lead','executive'];
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    if (roleTriggers.some(w => lower.includes(w))) {
+      document.getElementById('f-role').value = line;
+      break;
+    }
+  }
+}
+
+// ─── VOICE NOTES ──────────────────────────────────────────────────────────────
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return;
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-GB';
+  recognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    document.getElementById('voice-text').textContent = transcript;
+    document.getElementById('voice-text').classList.add('has-content');
+    if (e.results[e.results.length-1].isFinal) {
+      voiceNote = transcript;
+      stopVoice();
+    }
+  };
+  recognition.onerror = () => stopVoice();
+  recognition.onend = () => { if (isRecording) stopVoice(); };
+}
+
+function toggleVoice() {
+  if (!recognition) {
+    showToast('Voice not supported on this browser. Please type your notes.', 'error');
+    return;
+  }
+  isRecording ? stopVoice() : startVoice();
+}
+
+function startVoice() {
+  isRecording = true;
+  document.getElementById('mic-btn').classList.add('recording');
+  document.getElementById('mic-btn').innerHTML = '<span style="font-size:16px;">⏹</span>';
+  document.getElementById('voice-zone').classList.add('recording');
+  document.getElementById('wave-container').style.display = 'flex';
+  document.getElementById('voice-text').textContent = 'Listening...';
+  document.getElementById('voice-text').classList.remove('has-content');
+  try { recognition.start(); } catch(e) {}
+}
+
+function stopVoice() {
+  isRecording = false;
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('mic-btn').innerHTML = '<span style="font-size:16px;">🎤</span>';
+  document.getElementById('voice-zone').classList.remove('recording');
+  document.getElementById('wave-container').style.display = 'none';
+  try { recognition.stop(); } catch(e) {}
+  if (!voiceNote) {
+    document.getElementById('voice-text').textContent = 'Tap to speak your notes about this person...';
+    document.getElementById('voice-text').classList.remove('has-content');
+  }
+}
+
+// ─── CHIPS ────────────────────────────────────────────────────────────────────
+function toggleChip(el) { el.classList.toggle('selected'); }
+
+function getSelectedChips() {
+  return Array.from(document.querySelectorAll('#event-chips .chip.selected')).map(c => c.textContent).join(', ');
+}
+
+function updateEventChips() {
+  const container = document.getElementById('event-chips');
+  if (!container) return;
+  const events = (config.events || '').split('\n').map(e => e.trim()).filter(e => e);
+  container.innerHTML = events.map(e => `<button class="chip" onclick="toggleChip(this)">${e}</button>`).join('');
+}
+
+// ─── DAYS PICKER ──────────────────────────────────────────────────────────────
+function selectDays(el, days) {
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  followupDays = days;
+}
+
+// ─── SAVE CONTACT ─────────────────────────────────────────────────────────────
+async function saveContact() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('Please add at least a name', 'error'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+
+  const followupDate = new Date();
+  followupDate.setDate(followupDate.getDate() + followupDays);
+
+  const typedNotes = document.getElementById('f-notes').value.trim();
+  const allNotes = [voiceNote, typedNotes].filter(n => n).join(' | ');
+
+  const contact = {
+    id: Date.now(),
+    name,
+    company: document.getElementById('f-company').value.trim(),
+    role: document.getElementById('f-role').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    phone: document.getElementById('f-phone').value.trim(),
+    website: document.getElementById('f-website').value.trim(),
+    event: getSelectedChips(),
+    notes: allNotes,
+    followupDate: followupDate.toISOString().split('T')[0],
+    followupDays,
+    dateCaptured: new Date().toISOString().split('T')[0],
+    status: 'pending',
+    photo: contactPhotoBase64 || null
+  };
+
+  // Save locally first
+  contacts.unshift(contact);
+  saveContacts();
+
+  // Try to save to Google Sheet
+  if (config.sheetUrl) {
+    showProcessing('Saving to Google Sheet...');
+    try {
+      await saveToSheet(contact);
+      hideProcessing();
+    } catch(e) {
+      hideProcessing();
+      showToast('Saved locally - sheet sync failed. Check Settings.', 'error');
+    }
+  }
+
+  // Show success
+  document.getElementById('success-name').textContent = contact.name;
+  document.getElementById('success-co').textContent = contact.company || contact.role || '';
+  document.getElementById('success-followup').textContent = `Follow-up reminder: ${formatDate(contact.followupDate)}`;
+
+  btn.disabled = false;
+  showScreen('success');
+  renderContacts();
+}
+
+async function saveToSheet(contact) {
+  const params = new URLSearchParams({
+    action: 'addContact',
+    name: contact.name,
+    company: contact.company,
+    role: contact.role,
+    email: contact.email,
+    phone: contact.phone,
+    website: contact.website,
+    event: contact.event,
+    notes: contact.notes,
+    followupDate: contact.followupDate,
+    dateCaptured: contact.dateCaptured,
+    reminderEmail: config.email
+  });
+
+  const response = await fetch(`${config.sheetUrl}?${params}`);
+  if (!response.ok) throw new Error('Sheet error');
+  return response.json();
+}
+
+// ─── RENDER CONTACTS ──────────────────────────────────────────────────────────
+function renderContacts(filtered) {
+  const list = filtered || contacts;
+  const container = document.getElementById('contacts-container');
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="ti ti-address-book"></i><p>No contacts yet.<br>Tap + to capture your first card.</p></div>`;
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const overdue = list.filter(c => c.status !== 'done' && c.followupDate < today);
+  const upcoming = list.filter(c => c.status !== 'done' && c.followupDate >= today);
+  const done = list.filter(c => c.status === 'done');
+
+  let html = '';
+
+  if (overdue.length) {
+    html += `<div class="section-label" style="color:#9b2020;">Overdue follow-ups</div>`;
+    html += overdue.map(c => contactCardHTML(c, 'overdue')).join('');
+  }
+  if (upcoming.length) {
+    html += `<div class="section-label" style="margin-top:${overdue.length?'10px':'0'};">Upcoming follow-ups</div>`;
+    html += upcoming.map(c => contactCardHTML(c, 'soon')).join('');
+  }
+  if (done.length) {
+    html += `<div class="section-label" style="margin-top:10px;">Done</div>`;
+    html += done.map(c => contactCardHTML(c, 'done')).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function contactCardHTML(c, badgeType) {
+  const initials = c.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  const badgeText = badgeType === 'overdue' ? 'Overdue' : badgeType === 'done' ? 'Done' : `${c.followupDays}d`;
+  const avatarColors = [
+    'background:var(--pink-light);color:var(--pink)',
+    'background:#e8eeff;color:var(--blue)',
+    'background:#fff3cd;color:#7a4800',
+    'background:#e8f8f2;color:#085041'
+  ];
+  const colorIdx = c.name.charCodeAt(0) % avatarColors.length;
+  const listAvatar = c.photo
+    ? `<div class="avatar" style="overflow:hidden;flex-shrink:0;"><img src="${c.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${escHtml(c.name)}"></div>`
+    : `<div class="avatar" style="${avatarColors[colorIdx]}">${initials}</div>`;
+
+  return `<div class="contact-card" onclick="showDetail(${c.id})">
+    ${listAvatar}
+    <div class="contact-info">
+      <div class="contact-name">${escHtml(c.name)}</div>
+      <div class="contact-co">${escHtml(c.company || c.role || '')}</div>
+      ${c.event ? `<div class="event-tag">${escHtml(c.event)}</div>` : ''}
+    </div>
+    <span class="badge ${badgeType}">${badgeText}</span>
+  </div>`;
+}
+
+function filterContacts() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (!q) { renderContacts(); return; }
+  const filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    (c.company||'').toLowerCase().includes(q) ||
+    (c.role||'').toLowerCase().includes(q) ||
+    (c.event||'').toLowerCase().includes(q)
+  );
+  renderContacts(filtered);
+}
+
+// ─── CONTACT DETAIL ───────────────────────────────────────────────────────────
+function showDetail(id) {
+  currentContact = contacts.find(c => c.id === id);
+  if (!currentContact) return;
+
+  const c = currentContact;
+  const initials = c.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  const avatarHTML = c.photo
+    ? `<div style="width:48px;height:48px;border-radius:50%;flex-shrink:0;overflow:hidden;"><img src="${c.photo}" style="width:100%;height:100%;object-fit:cover;" alt="${escHtml(c.name)}"></div>`
+    : `<div class="avatar" style="width:48px;height:48px;font-size:15px;flex-shrink:0;background:var(--pink-light);color:var(--pink);">${initials}</div>`;
+
+  let html = `
+    <div class="card" style="display:flex;align-items:center;gap:12px;">
+      ${avatarHTML}
+      <div>
+        <div style="font-size:16px;font-weight:700;font-family:'Montserrat',sans-serif;color:var(--navy);">${escHtml(c.name)}</div>
+        <div style="font-size:12px;color:var(--muted);">${escHtml([c.role, c.company].filter(x=>x).join(', '))}</div>
+        ${c.event ? `<div class="event-tag" style="margin-top:5px;">${escHtml(c.event)} &middot; ${formatDate(c.dateCaptured)}</div>` : ''}
+      </div>
+    </div>`;
+
+  if (c.email || c.phone || c.website) {
+    html += `<div class="card"><div class="section-label">Contact details</div>`;
+    if (c.email) html += `<div class="field-row"><div class="field-icon"><i class="ti ti-mail"></i></div><div class="field-content"><label>Email</label><a href="mailto:${escHtml(c.email)}" style="font-size:13px;color:var(--blue);text-decoration:none;">${escHtml(c.email)}</a></div></div>`;
+    if (c.phone) html += `<div class="field-row"><div class="field-icon"><i class="ti ti-phone"></i></div><div class="field-content"><label>Phone</label><a href="tel:${escHtml(c.phone)}" style="font-size:13px;color:var(--text);text-decoration:none;">${escHtml(c.phone)}</a></div></div>`;
+    if (c.website) html += `<div class="field-row"><div class="field-icon"><i class="ti ti-world"></i></div><div class="field-content"><label>Website</label><a href="${escHtml(c.website)}" target="_blank" style="font-size:13px;color:var(--blue);text-decoration:none;">${escHtml(c.website)}</a></div></div>`;
+    html += `</div>`;
+  }
+
+  if (c.notes) {
+    html += `<div class="card"><div class="section-label">Your notes</div><p class="detail-notes">"${escHtml(c.notes)}"</p></div>`;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const isOverdue = c.status !== 'done' && c.followupDate < today;
+  const badgeClass = c.status === 'done' ? 'done' : isOverdue ? 'overdue' : 'soon';
+  const badgeText = c.status === 'done' ? 'Done' : isOverdue ? 'Overdue' : 'Upcoming';
+
+  html += `<div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div class="section-label" style="margin-bottom:4px;">Follow-up reminder</div>
+      <div style="font-size:14px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--navy);">${formatDate(c.followupDate)}</div>
+    </div>
+    <span class="badge ${badgeClass}">${badgeText}</span>
+  </div>`;
+
+  if (c.status !== 'done') {
+    html += `<button onclick="markDone(${c.id})" style="width:100%;padding:12px;background:var(--pink-light);color:#a0245e;border:0.5px solid var(--pink-mid);border-radius:var(--radius);font-size:13px;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;margin-bottom:10px;">
+      <i class="ti ti-check"></i> Mark follow-up done
+    </button>`;
+  }
+
+  document.getElementById('detail-content').innerHTML = html;
+  showScreen('detail');
+}
+
+function markDone(id) {
+  const c = contacts.find(c => c.id === id);
+  if (c) { c.status = 'done'; saveContacts(); renderContacts(); showDetail(id); }
+}
+
+function deleteCurrentContact() {
+  if (!currentContact) return;
+  if (!confirm(`Delete ${currentContact.name}?`)) return;
+  contacts = contacts.filter(c => c.id !== currentContact.id);
+  saveContacts();
+  renderContacts();
+  showScreen('list');
+}
+
+// ─── RESET FORM ───────────────────────────────────────────────────────────────
+function resetAndCapture() {
+  ['f-name','f-company','f-role','f-email','f-phone','f-website','f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  voiceNote = '';
+  followupDays = 7;
+  removePhoto();
+  setMode('scan');
+  document.getElementById('voice-text').textContent = 'Tap to speak your notes about this person...';
+  document.getElementById('voice-text').classList.remove('has-content');
+  document.querySelectorAll('#event-chips .chip').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.day-btn')[1].classList.add('selected');
+  document.getElementById('scan-inner').innerHTML = `
+    <div class="scan-icon-wrap"><i class="ti ti-id" style="color:white;font-size:18px;"></i></div>
+    <p>Tap to photograph card</p>
+    <small>Auto-fills name, company & details</small>`;
+  document.getElementById('scan-zone').onclick = triggerCamera;
+  showScreen('capture');
+}
+
+// ─── PROCESSING UI ────────────────────────────────────────────────────────────
+function showProcessing(msg) {
+  document.getElementById('processing-msg').textContent = msg || 'Processing...';
+  document.getElementById('processing-overlay').classList.add('active');
+}
+function hideProcessing() {
+  document.getElementById('processing-overlay').classList.remove('active');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─── TEST CONNECTION ──────────────────────────────────────────────────────────
+async function testConnection() {
+  if (!config.sheetUrl) { showToast('No sheet URL configured', 'error'); return; }
+  showProcessing('Testing connection...');
+  try {
+    const r = await fetch(`${config.sheetUrl}?action=ping`);
+    hideProcessing();
+    if (r.ok) showToast('Connected to Google Sheet!', 'success');
+    else throw new Error();
+  } catch(e) {
+    hideProcessing();
+    showToast('Connection failed - check your URL', 'error');
+  }
+}
+
+function showSheetInstructions() {
+  const el = document.getElementById('sheet-instructions');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+}
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
